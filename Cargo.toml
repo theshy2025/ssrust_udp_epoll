@@ -1,0 +1,11 @@
+[package]
+name = "udp_ssrust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+chrono = "0.4.37"
+simple_config_parser = "1.0.0"
+simple-dns = "0.7.0"
+nix = { version = "0.28.0", features = ["poll","event"] }
+socket2 = "0.5.6"
