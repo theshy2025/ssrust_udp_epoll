@@ -1,4 +1,4 @@
-use crate::line::line_enum::DataType;
+use crate::line::line_header::DataType;
 
 use super::{network::LineTraitNetWork, status::Status};
 

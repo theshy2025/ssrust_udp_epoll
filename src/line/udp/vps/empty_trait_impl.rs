@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap};
 
-use crate::{global, line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{global, line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineUdp2Vps;
 
@@ -58,16 +58,8 @@ impl LineTraitTunnel for LineUdp2Vps {
         self.last_packet_id = new_id;
     }
 
-    fn ids_recive(&mut self) -> Option<&mut Vec<u64>> {
-        Some(&mut self.ids_recive)
-    }
-
     fn http_send_queue(&mut self) -> Option<&mut HashMap<u64,(i64,Vec<u8>)>> {
         Some(&mut self.http_send_queue)
-    }
-
-    fn http_recive_map(&mut self) -> Option<&mut HashMap<u64,Vec<u8>>> {
-        Some(&mut self.http_recive_map)
     }
 }
 
@@ -76,12 +68,7 @@ impl LineTraitDns for LineUdp2Vps {
     
 }
 
-/*
+impl LineTraitTunnelResponse for LineUdp2Vps {
 
-
-
-
-fn missing_report(&mut self) -> Option<&mut HashMap<u16,i64>> {
-        Some(&mut self.missing_report)
-    }
-*/
+    
+}

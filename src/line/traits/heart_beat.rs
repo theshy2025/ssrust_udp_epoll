@@ -1,4 +1,4 @@
-use crate::{global::frame, line::line_enum::DataType};
+use crate::{global::frame, line::line_header::DataType};
 
 use super::network::LineTraitNetWork;
 

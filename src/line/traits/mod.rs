@@ -1,6 +1,6 @@
-use std::{any::Any, time::Instant};
+use std::any::Any;
 
-use self::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::Status, tunnel::LineTraitTunnel};
+use self::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, pair::LineTraitPair, status::Status, tunnel::LineTraitTunnel};
 
 pub mod heart_beat;
 pub mod network;
@@ -8,6 +8,7 @@ pub mod status;
 pub mod pair;
 pub mod event;
 pub mod tunnel;
+pub mod tunnel_response;
 pub mod dns;
 
 pub trait Line : 
@@ -15,6 +16,7 @@ LineTraitHeartBeat
 +LineTraitEvent
 +LineTraitPair
 +LineTraitTunnel
++LineTraitTunnelResponse
 +LineTraitDns
 {
     fn as_any(&self) -> &dyn Any;
@@ -22,7 +24,7 @@ LineTraitHeartBeat
     fn as_any_mut(&mut self) -> &mut dyn Any;
 
     fn tick(&mut self) {
-        let clock = Instant::now();
+        //let clock = Instant::now();
         self.next_status();
 
         match self.status() {
@@ -31,11 +33,12 @@ LineTraitHeartBeat
         }
         
         self.resend_timeout_packet();
-
-        let n = clock.elapsed().as_micros();
-        if n > 1 {
-            self.log(format!("line_tick:{}",n));
-        }
+        
+        self.check_tunnel_response_packet()
+        //let n = clock.elapsed().as_micros();
+        //if n > 1 {
+            //self.log(format!("line_tick:{}",n));
+        //}
     }
 
 }

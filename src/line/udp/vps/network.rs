@@ -1,10 +1,15 @@
 use std::os::fd::{AsFd, BorrowedFd};
 
-use crate::{config, line::{line_enum::DataType, traits::{heart_beat::LineTraitHeartBeat, network::LineTraitNetWork, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel}}, log::{self, Log}};
+use crate::{config, line::{line_header::DataType, traits::{heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, network::LineTraitNetWork, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel}}, log::{self, Log}};
 
 use super::LineUdp2Vps;
 
 impl LineTraitNetWork for LineUdp2Vps {
+    fn socket_peer_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        //self.peer_ip_port.clone()
+        self.socket.peer_addr()
+    }
+
     fn peer_ip_port(&self) -> String {
         self.peer_ip_port.clone()
     }
@@ -14,7 +19,7 @@ impl LineTraitNetWork for LineUdp2Vps {
     }
     
     fn socket_send(&mut self,buf:&[u8]) {
-        self.log(format!("udp send {} bytes to [{}]",buf.len(),self.peer_ip_port()));
+        self.log(format!("udp send {} bytes to [{:?}]",buf.len(),self.peer_ip_port()));
         self.socket.send_to(buf,self.peer_ip_port()).unwrap();
     }
     
@@ -25,7 +30,7 @@ impl LineTraitNetWork for LineUdp2Vps {
     fn on_network_data(&mut self,buf:&mut [u8]) -> (usize,usize,DataType) {
         let len = buf.len();
         let data_type = DataType::from(buf[0]);
-        self.log(format!("on network data from [{}]{} bytes,data_type:{:?},step:{:?},http_send_queue_len:{}",self.peer_ip_port(),len,data_type,self.step,self.http_send_queue.len()));
+        self.log(format!("on network data from [{:?}]{} bytes,data_type:{:?},step:{:?},http_send_queue_len:{}",self.peer_ip_port(),len,data_type,self.step,self.http_send_queue.len()));
         
         match data_type {
             DataType::Port => self.on_port(&buf[1..]),
@@ -38,10 +43,13 @@ impl LineTraitNetWork for LineUdp2Vps {
             },
 
             DataType::Http => {
-                return self.on_http_packet(&buf[1..])
+                let id = self.get_packet_id(&buf[1..]);
+                let packet_send_time = self.get_packet_send_time(&buf[1..]);
+                self.send_ack(id,packet_send_time);
+                return (0,buf.len(),DataType::Http)
             },
 
-            DataType::Ack => self.on_ack(&buf[1..]),
+            DataType::Ack => self.on_recive_ack(&buf[1..]),
 
             _ => {
                 log::err(format!("[{}]error data_type",self.id()))

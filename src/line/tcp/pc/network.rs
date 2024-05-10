@@ -1,6 +1,6 @@
-use std::{io::{Read, Write}, os::fd::{AsFd, BorrowedFd}};
+use std::{io::{self, Read, Write}, os::fd::{AsFd, BorrowedFd}};
 
-use crate::{global, line::{line_enum::DataType, traits::network::LineTraitNetWork}, log::{self, Log}};
+use crate::{global, line::{line_header::DataType, traits::network::LineTraitNetWork}, log::{self, Log}};
 
 use super::LinePc;
 
@@ -13,20 +13,13 @@ pub enum Step {
 }
 
 impl LineTraitNetWork for LinePc {
-    fn peer_ip_port(&self) -> String {
-        match self.socket.peer_addr() {
-            Ok(s) => s.to_string(),
-            Err(e) => {
-                log::err(format!("[{}]{}",self.id(),e));
-                String::new()
-            },
-        }
+    fn socket_peer_addr(&self) -> io::Result<std::net::SocketAddr> {
+        self.socket.peer_addr()
     }
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> (usize,usize,DataType) {
         let len = buf.len();
-        let addr = self.peer_ip_port();
-        self.log(format!("on network data from {} {} bytes step:{:?}",addr,len,self.step));
+        self.log(format!("on network data from[{:?}]{} bytes step:{:?}",self.socket.peer_addr(),len,self.step));
         match self.step {
             Step::Raw => self.s5_hello(),
             Step::HelloDone => self.s5_sni(buf),

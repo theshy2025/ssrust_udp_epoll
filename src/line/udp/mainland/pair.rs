@@ -1,4 +1,4 @@
-use crate::{line::{line_enum::DataType, traits::{pair::LineTraitPair, tunnel::LineTraitTunnel}}, log::Log};
+use crate::{line::{line_header::DataType, traits::{pair::LineTraitPair, tunnel::LineTraitTunnel}}, log::Log};
 
 use super::LineUdp2MainLand;
 
@@ -12,7 +12,8 @@ impl LineTraitPair for LineUdp2MainLand {
     }
 
     fn on_pair_data(&mut self,buf:&[u8],data_type:DataType) {
-        self.log(format!("on data from pair {} bytes,data_type:{:?},http_send_queue_len:{}",buf.len(),data_type,self.http_send_queue.len()));
+        assert_eq!(data_type,DataType::Http);
+        self.log(format!("on data from pair {} bytes,http_send_queue_len:{}",buf.len(),self.http_send_queue.len()));
         self.send_http_buf(buf);
     }
 }

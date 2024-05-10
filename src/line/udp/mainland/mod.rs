@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::UdpSocket, time::Instant};
 
-use crate::{line::{base_line::BaseLine, line_enum::Step}, log::log_dir::LogDir};
+use crate::{line::{base_line::BaseLine, line_header::Step}, log::log_dir::LogDir};
 
 mod empty_trait_impl;
 mod status;

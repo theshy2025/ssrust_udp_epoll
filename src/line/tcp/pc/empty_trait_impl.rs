@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LinePc;
 
@@ -20,17 +20,6 @@ impl Log for LinePc {
     }
 }
 
-
-
-impl LineTraitPair for LinePc {
-    fn pair_id(&self) -> u64 {
-        self.pair_id
-    }
-    
-    fn set_pair_id(&mut self,new:u64) {
-        self.pair_id = new;
-    }
-}
 
 impl LineTraitStatus for LinePc {
     fn status(&self) -> Status {

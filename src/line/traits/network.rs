@@ -1,8 +1,6 @@
-use std::{net::SocketAddrV4, os::fd::BorrowedFd};
+use std::os::fd::BorrowedFd;
 
-use socket2::SockAddr;
-
-use crate::line::line_enum::DataType;
+use crate::{global, line::line_header::DataType};
 
 use super::status::{LineTraitStatus, Status};
 
@@ -11,7 +9,14 @@ pub trait LineTraitNetWork : LineTraitStatus {
         todo!()
     }
 
-    fn peer_ip_port(&self) -> String {String::new()}
+    fn socket_peer_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        todo!()
+    }
+
+    fn peer_ip_port(&self) -> String {
+        todo!()
+    }
+
     fn update_ip_port(&mut self,_ip_port:String){}
 
     fn socket_fd(&self) -> BorrowedFd<'_>;
@@ -20,16 +25,17 @@ pub trait LineTraitNetWork : LineTraitStatus {
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> (usize,usize,DataType) {
         let len = buf.len();
-        self.log(format!("on network data from[{}]{} bytes",self.peer_ip_port(),len));
+        self.log(format!("on network data from[{:?}]{} bytes",self.socket_peer_addr(),len));
         (0,len,DataType::Http)
     }
 
     fn socket_send(&mut self,buf:&[u8]) {
         let st = self.status();
         let len = buf.len();
-        let addr = self.peer_ip_port();
-        self.log(format!("try socket_send {} bytes to [{}]",len,addr));
+
+       let hash = global::hash(buf);
         
+        self.log(format!("try send {} bytes to [{:?}],hash:{:?}",len,self.socket_peer_addr(),hash));
         
         if st == Status::WriteClose || st == Status::ReadWriteBothClose || 
         st == Status::DeRegister || st == Status::Close {
@@ -38,23 +44,24 @@ pub trait LineTraitNetWork : LineTraitStatus {
         
         match self.socket_write(buf) {
             Ok(n) => {
-                self.log(format!("write {} bytes data to [{}]",n,self.peer_ip_port()));
+                self.log(format!("write {} bytes data to [{:?}]",n,self.socket_peer_addr()));
             },
-            Err(e) => crate::log::err(format!("write data to network fail {}",e)),
+            Err(e) => {
+                self.err(format!("write data to network fail {}",e));
+                panic!()
+            },
         }
     }
 
-    fn connect(&mut self,_address: &SockAddr) -> std::io::Result<()> {
+    fn connect(&mut self) -> std::io::Result<()> {
         todo!()
     }
 
     fn start_connect(&mut self) {
-        let ip_port = self.peer_ip_port();
-        self.log(format!("start connecting to {} ",ip_port));
-        let address:SocketAddrV4 = ip_port.parse().unwrap();
-        match self.connect(&address.into()) {
+        self.log(format!("start connecting to[{:?}]",self.peer_ip_port()));
+        match self.connect() {
             Ok(_) => self.log(format!("connect done")),
-            Err(e) => self.log(format!("{},{}",address,e)),
+            Err(e) => self.log(format!("{}",e)),
         }
     }
 }

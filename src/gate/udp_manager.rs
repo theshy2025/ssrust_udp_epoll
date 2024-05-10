@@ -1,6 +1,6 @@
-use std::{net::UdpSocket, os::fd::AsFd, time::Instant};
+use std::{net::UdpSocket, os::fd::AsFd};
 
-use crate::{config::{self, UDP_GATE_ID}, line::{line_enum::DataType, tcp::pc::LinePc, udp::{mainland::LineUdp2MainLand, vps::LineUdp2Vps}}, log::{self, log_dir::LogDir, Log}};
+use crate::{config::{self, UDP_GATE_ID}, line::{line_header::DataType, tcp::pc::LinePc, udp::{mainland::LineUdp2MainLand, vps::LineUdp2Vps}}, log::{log_dir::LogDir, Log}};
 
 use super::Gate;
 
@@ -85,35 +85,4 @@ impl Gate {
         (id,idle)
     }
 
-    pub fn check_udp_packet(&mut self) {
-        let clock = Instant::now();
-        let mut data:Vec<(u64,Vec<u8>)> = Vec::new();
-
-        for (_,line) in self.lines.iter_mut() {
-            let buf = line.move_out_saving_packet();
-            if buf.len() > 0 {
-                let pid = line.pair_id();
-                if pid > 0 {
-                    let node = (pid,buf);
-                    data.push(node);
-                }
-            }
-        }
-        
-        for (id,buf) in data.iter() {
-            match self.lines.get_mut(id) {
-                Some(line) => {
-                    line.on_pair_data(buf,DataType::Http);
-                },
-                None => {
-                    log::err(format!("error can not find line {}",id));
-                },
-            }
-        }
-        let n = clock.elapsed().as_micros();
-        if n > 100 {
-            self.log(format!("check_udp_packet:{}",n));
-        }
-    }
-    
 }

@@ -24,7 +24,7 @@ impl LogBufWriter {
 impl LogBufWriter {
     pub fn add(&mut self,s:String) {
         let now = Local::now();
-        let t = format!("[{}:{:02}:{:02}:{}]",now.hour(),now.minute(),now.second(),now.timestamp_subsec_millis());
+        let t = format!("[{}:{:02}:{:02}:{}][{}]",now.hour(),now.minute(),now.second(),now.timestamp_subsec_millis(),now.timestamp_millis());
         let s = format!("[{}]{}{}",crate::global::frame(),t,s);
         writeln!(self.bw,"{s}").unwrap();
     }

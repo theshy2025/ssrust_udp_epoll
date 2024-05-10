@@ -1,3 +1,5 @@
+use std::hash::{DefaultHasher, Hash, Hasher};
+
 use chrono::Local;
 
 use crate::{config::ATYP_HOST_NAME, log::{self}};
@@ -61,6 +63,12 @@ pub fn i64_from_slice(input:&[u8]) -> i64 {
     let mut bytes = [0u8; 8];
     bytes.copy_from_slice(input);
     i64::from_be_bytes(bytes)
+}
+
+pub fn hash(input:&[u8]) -> [u8; 8] {
+    let mut hasher = DefaultHasher::new();
+    input.hash(&mut hasher);
+    hasher.finish().to_be_bytes()
 }
 
 pub fn decode_host_name(buf:&[u8]) -> String {

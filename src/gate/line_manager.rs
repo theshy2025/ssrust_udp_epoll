@@ -1,12 +1,10 @@
-use std::time::Instant;
-
-use crate::{line::traits::status::Status, log::{self, Log}};
+use crate::{line::traits::status::Status, log::{self}};
 
 use super::Gate;
 
 impl Gate {
     pub fn tick(&mut self) {
-        let clock = Instant::now();
+        //let clock = Instant::now();
         let mut vec = Vec::new();
         
         for (_,v) in self.lines.iter_mut() {
@@ -17,10 +15,10 @@ impl Gate {
             v.tick();
         }
 
-        let n = clock.elapsed().as_micros();
-        if n > 150 {
-            self.log(format!("gate_tick_a:{}",n));
-        }
+        //let n = clock.elapsed().as_micros();
+        //if n > 150 {
+            //self.log(format!("gate_tick_a:{}",n));
+        //}
 
         for (id,status,pid) in vec {
             match status {
@@ -53,10 +51,10 @@ impl Gate {
             }
         }
 
-        let n = clock.elapsed().as_micros();
-        if n > 250 {
-            self.log(format!("gate_tick:{}",n));
-        }
+        //let n = clock.elapsed().as_micros();
+        //if n > 250 {
+            //self.log(format!("gate_tick:{}",n));
+        //}
     }
 
     

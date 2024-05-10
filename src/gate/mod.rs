@@ -44,9 +44,7 @@ impl Gate {
             self.poll();
             self.check_dns_result();
             self.gather_dns_query();
-            self.check_udp_packet();
             self.gather_client_hello();
-            
         }
     }
 

@@ -1,6 +1,6 @@
 use std::{collections::HashMap, net::UdpSocket};
 
-use crate::{config, line::{base_line::BaseLine, line_enum::Step}, log::log_dir::LogDir};
+use crate::{config, line::{base_line::BaseLine, line_header::Step}, log::log_dir::LogDir};
 
 mod empty_trait_impl;
 mod status;
@@ -19,7 +19,7 @@ pub struct LineUdp2Vps {
     
     pub last_packet_id:u64,
     pub http_send_queue:HashMap<u64,(i64,Vec<u8>)>,
-    pub http_recive_map:HashMap<u64,Vec<u8>>,
+   
     pub ids_recive:Vec<u64>,
     
 }
@@ -34,7 +34,6 @@ impl LineUdp2Vps {
             socket, 
             peer_ip_port, 
             step: Step::Raw,
-            http_recive_map: HashMap::new(),
             pair_id: 0,
             http_send_queue: HashMap::new(),
             last_send_heart_beat: 0,
@@ -44,7 +43,3 @@ impl LineUdp2Vps {
         }
     }
 }
-/* 
-
-    pub missing_report:HashMap<u16,i64>,
-*/

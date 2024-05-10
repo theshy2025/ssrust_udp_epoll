@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{line::traits::{dns::LineTraitDns, event::LineTraitEvent, heart_beat::LineTraitHeartBeat, status::{LineTraitStatus, Status}, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineWorld;
 
@@ -32,14 +32,10 @@ impl LineTraitStatus for LineWorld {
     }
 }
 
-impl LineTraitPair for LineWorld {
-    fn pair_id(&self) -> u64 {
-        self.pair_id
-    }
-}
-
 impl LineTraitEvent for LineWorld {
-    
+    fn on_error(&mut self) {
+        self.log(format!("network error {:?}",self.socket.take_error()));
+    }
 }
 
 

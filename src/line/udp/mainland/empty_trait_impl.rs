@@ -1,6 +1,6 @@
 use std::{any::Any, collections::HashMap};
 
-use crate::{line::traits::{event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{line::traits::{event::LineTraitEvent, heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineUdp2MainLand;
 
@@ -44,6 +44,10 @@ impl LineTraitHeartBeat for LineUdp2MainLand {
     
 }
 
+impl LineTraitTunnelResponse for LineUdp2MainLand {
+    
+}
+
 impl LineTraitTunnel for LineUdp2MainLand {
     fn last_packet_id(&self) -> u64 {
         self.last_packet_id
@@ -56,12 +60,5 @@ impl LineTraitTunnel for LineUdp2MainLand {
     fn http_send_queue(&mut self) -> Option<&mut HashMap<u64,(i64,Vec<u8>)>> {
         Some(&mut self.http_send_queue)
     }
-
-    fn http_recive_map(&mut self) -> Option<&mut HashMap<u64,Vec<u8>>> {
-        Some(&mut self.http_recive_map)
-    }
-
-    fn ids_recive(&mut self) -> Option<&mut Vec<u64>> {
-        Some(&mut self.ids_recive)
-    }
+    
 }

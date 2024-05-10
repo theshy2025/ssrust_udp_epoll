@@ -2,7 +2,7 @@ use std::os::fd::{AsFd, BorrowedFd};
 
 use simple_dns::*;
 
-use crate::{line::{line_enum::DataType, traits::{dns::LineTraitDns, network::LineTraitNetWork}}, log::Log};
+use crate::{line::{line_header::DataType, traits::{dns::LineTraitDns, network::LineTraitNetWork}}, log::Log};
 
 use super::LineDns;
 
@@ -15,8 +15,8 @@ impl LineTraitDns for LineDns {
 }
 
 impl LineTraitNetWork for LineDns {
-    fn peer_ip_port(&self) -> String {
-        self.socket.peer_addr().unwrap().to_string()
+    fn socket_peer_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        self.socket.peer_addr()
     }
 
     fn on_network_data(&mut self,buf:&mut [u8]) -> (usize,usize,DataType) {
@@ -32,8 +32,8 @@ impl LineTraitNetWork for LineDns {
     }
 
     fn socket_send(&mut self,buf:&[u8]) {
-        self.log(format!("udp send {} bytes to {:?} ",buf.len(),self.peer_ip_port()));
-        self.socket.send_to(buf,self.peer_ip_port()).unwrap();
+        self.log(format!("udp send {} bytes to[{:?}]",buf.len(),self.socket_peer_addr()));
+        self.socket.send_to(buf,self.socket_peer_addr().unwrap()).unwrap();
     }
     
     fn socket_fd(&self) -> BorrowedFd<'_> {

@@ -1,6 +1,6 @@
 use std::any::Any;
 
-use crate::{config::DNS_AGENT, line::traits::{event::LineTraitEvent, heart_beat::LineTraitHeartBeat, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
+use crate::{config::DNS_AGENT, line::traits::{event::LineTraitEvent, heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, pair::LineTraitPair, status::LineTraitStatus, tunnel::LineTraitTunnel, Line}, log::{buf_writer::LogBufWriter, log_dir::LogDir, Log}};
 
 use super::LineDns;
 
@@ -36,6 +36,10 @@ impl LineTraitHeartBeat for LineDns {
 }
 
 impl LineTraitTunnel for LineDns {
+    
+}
+
+impl LineTraitTunnelResponse for LineDns {
     
 }
 

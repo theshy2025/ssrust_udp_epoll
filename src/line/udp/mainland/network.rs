@@ -1,11 +1,15 @@
 use std::os::fd::{AsFd, BorrowedFd};
 
-use crate::{global, line::{line_enum::{DataType, OrderResult, Step}, traits::{heart_beat::LineTraitHeartBeat, network::LineTraitNetWork, tunnel::LineTraitTunnel}}, log::Log};
+use crate::{line::{line_header::{DataType, Step}, traits::{heart_beat::LineTraitHeartBeat, tunnel_response::LineTraitTunnelResponse, network::LineTraitNetWork, tunnel::LineTraitTunnel}}, log::Log};
 
 use super::LineUdp2MainLand;
 
 
 impl LineTraitNetWork for LineUdp2MainLand {
+    fn socket_peer_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        self.socket.peer_addr()//self.peer_ip_port.clone()
+    }
+
     fn peer_ip_port(&self) -> String {
         self.peer_ip_port.clone()
     }
@@ -16,10 +20,13 @@ impl LineTraitNetWork for LineUdp2MainLand {
     }
     
     fn socket_send(&mut self,buf:&[u8]) {
-        let addr = self.socket.peer_addr().unwrap().to_string();
-        self.log(format!("udp send {} bytes to {} ",buf.len(),addr));
+        let _addr = self.socket.peer_addr();
+        //self.log(format!("try send {} bytes to[{:?}] ",buf.len(),addr));
         
-        self.socket.send(buf).expect(&self.id().to_string());
+        match self.socket.send(buf) {
+            Ok(_n) => {}//self.log(format!("send {} bytes to[{:?}]done",n,addr)),
+            Err(e) => self.log(format!("socket send fail {}",e)),
+        }
     }
     
     fn socket_read(&mut self,buf:&mut [u8]) -> std::io::Result<usize> {
@@ -29,19 +36,33 @@ impl LineTraitNetWork for LineUdp2MainLand {
     fn on_network_data(&mut self,buf:&mut [u8]) -> (usize,usize,DataType) {
         let len = buf.len();
         let data_type:DataType = DataType::from(buf[0]);
-        let addr = self.socket.peer_addr().unwrap().to_string();
-        self.log(format!("on network data from[{}]{} bytes,data_type:{:?},step:{:?},http_send_queue_len:{}",addr,len,data_type,self.step,self.http_send_queue.len()));
+        self.log(format!("on network data from[{:?}]{} bytes,data_type:{:?},step:{:?},http_send_queue_len:{}",self.socket.peer_addr(),len,data_type,self.step,self.http_send_queue.len()));
+        
+        if data_type == DataType::HeartBeat {
+            self.on_recv_heart_beat(&buf[1..]);
+            self.send_heart_beat();
+            return (0,0,DataType::Error);
+        }
+
+        if data_type == DataType::Ack {
+            self.on_recive_ack(&buf[1..]);
+            return (0,0,DataType::Error);
+        }
+
+        let id = self.get_packet_id(&buf[1..]);
+        let packet_send_time = self.get_packet_send_time(&buf[1..]);
+        self.send_ack(id,packet_send_time);
+
         match data_type {
-            DataType::HeartBeat => {
-                self.on_recv_heart_beat(&buf[1..]);
-                self.send_heart_beat();
+            DataType::ClientHello => {
+                if self.step == Step::Raw {
+                    self.on_recv_client_hello(&mut buf[1..]);
+                }
             },
             
-            DataType::ClientHello => self.on_recv_client_hello(&mut buf[1..]),
-            
-            DataType::Http => return self.on_http_packet(&buf[1..]),
-
-            DataType::Ack => self.on_ack(&buf[1..]),
+            DataType::Http => { 
+                return (0,buf.len(),DataType::Http)
+            },
 
             _ => todo!()
         }
@@ -57,18 +78,9 @@ impl LineTraitNetWork for LineUdp2MainLand {
 
 impl LineUdp2MainLand {
     fn on_recv_client_hello(&mut self,buf:&mut [u8]) {
-        assert!(self.client_hello_data.is_empty());
-        let packet_id = global::u64_from_slice(&buf[0..8]);
-        let _t = global::i64_from_slice(&buf[8..16]);
-        let ret = self.ack_recive_packet(packet_id,0);
-        
-        if ret != OrderResult::Normal {
-            return;
-        }
-
-        let sni_len = u16::from_be_bytes([buf[16],buf[17]]);
-        let stop = 18+sni_len as usize;
-        let sni_buf = &mut buf[18..stop];
+        let sni_len = u16::from_be_bytes([buf[24],buf[25]]);
+        let stop = 26+sni_len as usize;
+        let sni_buf = &mut buf[26..stop];
         
         crate::global::reverse(sni_buf);
         let ret = crate::global::decode_host_name(sni_buf);
@@ -81,7 +93,7 @@ impl LineUdp2MainLand {
 
         self.step = Step::WaitingDnsCollect;
 
-        self.log(format!("on_recv_client_hello {} bytes,packet_id:{},sni_len:{},ip_port:{}",buf.len(),packet_id,sni_len,self.peer_ip_port));
+        self.log(format!("on_recv_client_hello {} bytes,sni_len:{},ip_port:{}",buf.len(),sni_len,self.peer_ip_port));
         
     }
 

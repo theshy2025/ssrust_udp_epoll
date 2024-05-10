@@ -1,4 +1,4 @@
-use crate::{line::{line_enum::{DataType, Step}, traits::{pair::LineTraitPair, tunnel::LineTraitTunnel}}, log::Log};
+use crate::{line::{line_header::{DataType, Step}, traits::{pair::LineTraitPair, tunnel::LineTraitTunnel}}, log::Log};
 
 use super::LineUdp2Vps;
 

@@ -8,6 +8,13 @@ use super::LineWorld;
 
 impl LineTraitNetWork for LineWorld {
 
+    fn socket_peer_addr(&self) -> std::io::Result<std::net::SocketAddr> {
+        match self.socket.peer_addr() {
+            Ok(s) => Ok(s.as_socket().unwrap()),
+            Err(e) => Err(e),
+        }
+    }
+
     fn peer_ip_port(&self) -> String {
         self.peer_ip_port.clone()
     }
@@ -25,8 +32,10 @@ impl LineTraitNetWork for LineWorld {
         self.socket.write(buf)
     }
 
-    fn connect(&mut self,address: &SockAddr) -> std::io::Result<()> {
-        self.socket.connect(address)
+    fn connect(&mut self) -> std::io::Result<()> {
+        let addr:std::net::SocketAddr = self.peer_ip_port.parse().unwrap();
+        let addr = SockAddr::from(addr);
+        self.socket.connect(&addr)
     }
     
     fn socket_fd(&self) -> BorrowedFd<'_> {
