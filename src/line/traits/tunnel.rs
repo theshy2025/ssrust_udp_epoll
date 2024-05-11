@@ -101,11 +101,13 @@ pub trait LineTraitTunnel: LineTraitTunnelResponse {
     }
 
     fn send_packet(&mut self,id:u64) {
-        self.log(format!("send_packet id:[{}]",id));
+        
         match self.http_send_queue() {
             Some(m) => {
                 let (_,buf) = m.get(&id).unwrap();
                 let buf = buf.clone();
+                let hash = &buf[17..25];
+                self.log(format!("send_packet id:[{}],hash:{:?}",id,hash));
                 self.socket_send(&buf);
             },
             None => todo!(),

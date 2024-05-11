@@ -33,7 +33,8 @@ impl Gate {
             let line = self.lines.get_mut(&tid).unwrap();
             line.set_pair_id(id);
         } else {
-            self.err(format!("run out of chick"));
+            //self.err(format!("run out of chick"));
+            panic!("run out of chick")
         }
     }
 }

@@ -78,6 +78,7 @@ pub trait LineTraitTunnelResponse: LineTraitNetWork {
         let id = self.last_normal()+1;
         let v = self.get_packet(id);
         if v.len() > 0 {
+            self.log(format!("tunnel tick packet id:[{}]",id));
             self.on_normal_packet(id,&v);
         }
     }
